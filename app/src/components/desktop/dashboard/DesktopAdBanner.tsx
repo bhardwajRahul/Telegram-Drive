@@ -6,16 +6,39 @@ const AD_INTERVAL_MS = 1000 * 60 * 45; // 45 minutes
 const AUTO_DISMISS_SECONDS = 10; // auto-close after 10s
 const DISMISSED_AT_KEY = 'desktopAdDismissedAt';
 
-// Ad network offerwall URL — opened in the external browser on click.
-// Matches the highperformanceformat.com provider used by the embedded ad.
-const AD_CLICK_URL = 'https://www.highperformanceformat.com/9cf449272b7e1c83054b82b7639c6029';
+const AD_CLICK_URL = 'https://www.effectivecpmnetwork.com/nk8qy01t0g?key=a6c132f628973ad13b326e57e4a92f40';
 
-// Inline ad HTML embedded via srcdoc — avoids file-loading origin issues.
+// Inline ad HTML embedded via srcdoc — avoids cross-origin framing / X-Frame-Options blockages.
 const AD_SRCDOC = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (function() {
+      const mockLoc = {};
+      for (const key in window.location) {
+        try {
+          if (typeof window.location[key] === 'function') {
+            mockLoc[key] = window.location[key].bind(window.location);
+          } else {
+            Object.defineProperty(mockLoc, key, {
+              get: () => key === 'protocol' ? 'https:' : window.location[key],
+              configurable: true,
+              enumerable: true
+            });
+          }
+        } catch (e) {}
+      }
+      try {
+        Object.defineProperty(window, 'location', {
+          value: mockLoc,
+          configurable: true,
+          enumerable: true
+        });
+      } catch (e) {}
+    })();
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -33,8 +56,8 @@ const AD_SRCDOC = `<!DOCTYPE html>
       'width': 300,
       'params': {}
     };
-  <\/script>
-  <script src="https://www.highperformanceformat.com/9cf449272b7e1c83054b82b7639c6029/invoke.js" async><\/script>
+  </script>
+  <script src="https://www.highperformanceformat.com/9cf449272b7e1c83054b82b7639c6029/invoke.js" async></script>
 </body>
 </html>`;
 
